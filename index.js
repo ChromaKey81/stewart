@@ -29,6 +29,9 @@ client.on("message", (msg) => {
                 msg.channel.send("i'm gay");
             }
         }
+        case "GUYS, BAD NEWS": {
+            msg.channel.send("https://media.discordapp.net/attachments/771835757560070166/771938310104154122/bad_news.png");
+        }
     }
     if ((msg.content.includes("nigger") || msg.content.includes("nigga") || msg.content.includes("niggers") || msg.content.includes("niggas")) && !(msg.member.roles.cache.find(role => role.name === "black") || msg.member.roles.cache.find(role => role.name === "n word pass"))) {
         msg.reply("YOU AIN'T BLACK");
@@ -45,8 +48,11 @@ client.on("message", (msg) => {
             }).catch(console.error);
         }
     }
-    if (msg.content.startsWith("st!anon")) {
-
+    if (msg.content.includes("allah")) {
+        msg.channel.send("PRAISE :star_struck: :kaaba:");
+    }
+    if (msg.content.includes("pedophile")) {
+        msg.channel.send("Actually, pedophilia isn't *that* bad. If you really think about it, age of consent is just a myth. In this essay I will");
     }
 })
 
