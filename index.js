@@ -28,9 +28,11 @@ client.on("message", (msg) => {
             if (msg.channel instanceof Discord.DMChannel) { 
                 msg.channel.send("i'm gay");
             }
+            break;
         }
         case "GUYS, BAD NEWS": {
             msg.channel.send("https://media.discordapp.net/attachments/771835757560070166/771938310104154122/bad_news.png");
+            break;
         }
     }
     if ((msg.content.includes("nigger") || msg.content.includes("nigga") || msg.content.includes("niggers") || msg.content.includes("niggas")) && !(msg.member.roles.cache.find(role => role.name === "black") || msg.member.roles.cache.find(role => role.name === "n word pass"))) {
