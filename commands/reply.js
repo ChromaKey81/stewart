@@ -4,7 +4,7 @@ const { prefix } = require('./config.json');
 module.exports = {
     name: 'reply',
     description: 'Reply to an anonymous message',
-    arguments: '<anonID>',
+    arguments: '<anonID> <text>',
     args: true,
     /**
  * Say hi

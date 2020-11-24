@@ -15,7 +15,7 @@ for (const file of commandFiles) {
 
 client.on("ready", () => {
     console.log("Logged in as ${client.user.tag}!");
-})
+});
 
 client.on("message", (msg) => {
     switch (msg.content) {
@@ -29,6 +29,14 @@ client.on("message", (msg) => {
             if (!msg.author.bot) { 
                 msg.channel.send("pee");
             }
+            break;
+        }
+        case "based": {
+            msg.channel.send("https://cdn.discordapp.com/attachments/618527046527614986/778733104420094012/Based.mp4");
+            break;
+        }
+        case "da wobot!": {
+            msg.channel.send("https://cdn.discordapp.com/attachments/440372667514880001/779729159689076736/1605123501570.webm");
             break;
         }
         case "hey babe": { 
@@ -68,6 +76,9 @@ client.on("message", (msg) => {
                     });
                 }).catch(console.error);
             }
+        }
+        if ((msg.content.includes("unfunny") || msg.content.includes("not funny") || msg.content.includes("cringe") || msg.content.includes("repost")) && !msg.author.bot) {
+            msg.channel.send("https://cdn.discordapp.com/attachments/279294297398837249/776488535775117322/cringe_as_hell.mp4");
         }
         if (msg.content.includes("monke") && msg.author.bot === false) {
             msg.channel.send("MONKE MONKE :monkey: :banana: OOO OOOO OOO AA AA");

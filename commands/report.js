@@ -4,7 +4,7 @@ const { prefix, handler } = require('./config.json');
 module.exports = {
     name: 'report',
     description: 'Report an anonymouse message to the Handler for review',
-    arguments: '<anonID>',
+    arguments: '<anonID> [<reason>]',
     args: true,
     /**
  * Say hi
