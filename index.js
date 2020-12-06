@@ -87,6 +87,9 @@ client.on("message", (msg) => {
     if (msg.content.includes("allah")) {
         msg.channel.send("PRAISE :star_struck: :kaaba:");
     }
+    if (msg.content.includes("stickbug")) {
+        msg.channel.send("https://cdn.discordapp.com/attachments/633059174539984901/784411180918898698/video0-1.mov");
+    }
     if(msg.content.includes("stewart")) {
         msg.channel.send("STEWART");
     }
