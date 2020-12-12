@@ -15,10 +15,12 @@ module.exports = {
         const { commands } = msg.client;
         const data = [];
         data.push(commands.map(command => {
-            if (command.args) {
-                return "`" + command.name + " " + command.arguments + "` " + command.description;
-            } else {
-                return "`" + command.name + "` " + command.description;
+            if ((command.guild && command.guild === msg.guild.id) || !command.guild) {
+                if (command.args) {
+                    return "`" + command.name + " " + command.arguments + "` " + command.description;
+                } else {
+                    return "`" + command.name + "` " + command.description;
+                }
             }
         }).join("\n"));
         msg.channel.send(data);

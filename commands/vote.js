@@ -4,7 +4,7 @@ const { prefix } = require('./config.json');
 module.exports = {
     name: 'vote',
     description: 'based? cringe?',
-    arguments: '<channel> <msg>',
+    arguments: '<channelID> <msgID>',
     args: true,
     /**
  * Say hi
