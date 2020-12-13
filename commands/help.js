@@ -17,12 +17,12 @@ module.exports = {
         data.push(commands.map(command => {
             if ((command.guild && command.guild === msg.guild.id) || !command.guild) {
                 if (command.args) {
-                    return "`" + command.name + " " + command.arguments + "` " + command.description;
+                    return "`" + command.name + " " + command.arguments + "` " + command.description + "\n";
                 } else {
-                    return "`" + command.name + "` " + command.description;
+                    return "`" + command.name + "` " + command.description + "\n";
                 }
             }
-        }).join("\n"));
+        }).join(""));
         msg.channel.send(data);
     }
 }
