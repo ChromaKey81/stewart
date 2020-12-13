@@ -17,14 +17,6 @@ client.on("ready", () => {
     console.log("Logged in as ${client.user.tag}!");
 });
 
-
-
-client.on("guildMemberAdd", (member) => {
-    if (member.guild.id === "756199887707570246") {
-        member.guild.systemChannel.send("Identify yourself with st!identify firstname-lastname");
-    }
-});
-
 client.on("message", (msg) => {
     switch (msg.content) {
         case "pee": {
