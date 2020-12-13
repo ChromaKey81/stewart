@@ -1,6 +1,6 @@
 const fs = require('fs');
 const Discord = require("discord.js");
-const { 
+const {
     prefix, token, GMOD_DEATH_SOUND_PATH, BRUH_SOUND_PATH
 } = require('./config.json');
 
@@ -9,12 +9,20 @@ client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
-	const command = require(`./commands/${file}`);
-	client.commands.set(command.name, command);
+    const command = require(`./commands/${file}`);
+    client.commands.set(command.name, command);
 }
 
 client.on("ready", () => {
     console.log("Logged in as ${client.user.tag}!");
+});
+
+
+
+client.on("guildMemberAdd", (member) => {
+    if (member.guild.id === "756199887707570246") {
+        member.guild.systemChannel.send("Identify yourself with st!identify firstname-lastname");
+    }
 });
 
 client.on("message", (msg) => {
@@ -26,7 +34,7 @@ client.on("message", (msg) => {
             break;
         }
         case "poo": {
-            if (!msg.author.bot) { 
+            if (!msg.author.bot) {
                 msg.channel.send("pee");
             }
             break;
@@ -39,8 +47,8 @@ client.on("message", (msg) => {
             msg.channel.send("https://cdn.discordapp.com/attachments/440372667514880001/779729159689076736/1605123501570.webm");
             break;
         }
-        case "hey babe": { 
-            if (msg.channel instanceof Discord.DMChannel) { 
+        case "hey babe": {
+            if (msg.channel instanceof Discord.DMChannel) {
                 msg.channel.send("i'm gay");
             }
             break;
@@ -96,7 +104,7 @@ client.on("message", (msg) => {
     if (msg.content.includes("stickbug")) {
         msg.channel.send("https://cdn.discordapp.com/attachments/633059174539984901/784411180918898698/video0-1.mov");
     }
-    if(msg.content.includes("stewart")) {
+    if (msg.content.includes("stewart")) {
         msg.channel.send("STEWART");
     }
     if (msg.content.startsWith(prefix)) {
