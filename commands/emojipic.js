@@ -13,7 +13,7 @@ module.exports = {
  * @param {String[]} args List of arguments 
  */
     execute(client, msg, args) {
-        const emojiID = args[0].match(/\d+/g);
+        const emojiID = args[0].match(/\d+/g).pop();
         if (args[0].startsWith("<a:")) {
             msg.channel.send("https://cdn.discordapp.com/emojis/" + emojiID + ".gif?v=1");
         } else {

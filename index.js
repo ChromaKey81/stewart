@@ -116,6 +116,21 @@ client.on("message", (msg) => {
             msg.channel.send("/shrug");
         }
     }
+    if (msg.channel.name === "stewartorium" && msg.author.id !== "771831772157313024" && msg.channel.nsfw) {
+        const stewartoriums = client.channels.cache.filter(channel => channel.type === "text" && channel.name === "stewartorium" && channel.nsfw);
+        const attachments = [];
+        attachments.push(msg.attachments.map(attachment => {
+            return "\n" + attachment.url;
+        }));
+        var message = "**" + msg.author.tag + "**: " + msg.content + attachments;
+        msg.react('🥚');
+        stewartoriums.forEach(stewartorium => {
+            if (stewartorium !== msg.channel) {
+                stewartorium.send(message);
+            }
+            stewartorium.setTopic(stewartoriums.length + " stewartoriums entangled");
+        });
+    }
 });
 
 client.login(token);
