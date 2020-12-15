@@ -128,7 +128,7 @@ client.on("message", (msg) => {
             if (stewartorium !== msg.channel) {
                 stewartorium.send(message);
             }
-            stewartorium.setTopic(stewartoriums.length + " stewartoriums entangled");
+            stewartorium.setTopic(stewartoriums.size + " stewartoriums entangled");
         });
     }
 });
