@@ -1,12 +1,13 @@
 const fs = require('fs');
 const Discord = require("discord.js");
 const {
-    prefix, token, GMOD_DEATH_SOUND_PATH, BRUH_SOUND_PATH
+    prefix, token, GMOD_DEATH_SOUND_PATH, BRUH_SOUND_PATH, stewartoriumBlacklist, stewartoriumNumber
 } = require('./config.json');
 
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+var stewartoriums = [client.channels.cache.find(channel => channel.type === "text" && channel.name === "stewartorium" && channel.nsfw)];
 
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
@@ -17,8 +18,10 @@ client.on("ready", () => {
     console.log("Logged in as ${client.user.tag}!");
     client.user.setActivity("st!help", {
         type: "LISTENING"
-      });
+    });
 });
+
+
 
 client.on("message", (msg) => {
     switch (msg.content) {
@@ -54,7 +57,7 @@ client.on("message", (msg) => {
         }
     }
     if (msg.guild !== null) {
-        if ((msg.content.includes("nigger") || msg.content.includes("nigga") || msg.content.includes("niggers") || msg.content.includes("niggas")) && !(msg.member.roles.cache.find(role => role.name === "black") || msg.member.roles.cache.find(role => role.name === "n word pass"))) {
+        if ((msg.content.toLowerCase().includes("nigger") || msg.content.toLowerCase().includes("nigga") || msg.content.toLowerCase().includes("niggers") || msg.content.toLowerCase().includes("niggas")) && !(msg.member.roles.cache.find(role => role.name === "black") || msg.member.roles.cache.find(role => role.name === "n word pass"))) {
             msg.reply("YOU AIN'T BLACK");
             msg.delete();
         }
@@ -99,7 +102,7 @@ client.on("message", (msg) => {
     if (msg.content.includes("stickbug")) {
         msg.channel.send("https://cdn.discordapp.com/attachments/633059174539984901/784411180918898698/video0-1.mov");
     }
-    if (msg.content.includes("stewart") && !(msg.content.includes("<a:stewartpet:788420421850366002>" || msg.content.includes(":stewartpet:")))) {
+    if (msg.content.includes("stewart") && !(msg.content.includes("<a:stewartpet:788420421850366002>" || msg.content.includes(":stewartpet:"))) && !msg.author.bot) {
         msg.channel.send("STEWART");
     }
     if ((msg.content.includes("<a:stewartpet:788420421850366002>") || msg.content.includes(":stewartpet:")) && !msg.author.bot) {
@@ -122,9 +125,13 @@ client.on("message", (msg) => {
             msg.channel.send("/shrug");
         }
     }
-    if (msg.channel.name === "stewartorium" && msg.author.id !== "771831772157313024" && msg.channel.nsfw && msg.author) {
+    if (msg.channel.name === "stewartorium" && msg.author.id !== "771831772157313024" && msg.channel.nsfw) {
         const stewartoriums = client.channels.cache.filter(channel => channel.type === "text" && channel.name === "stewartorium" && channel.nsfw);
         const attachments = [];
+        const typing = stewartoriums.map(stewartorium => {
+            stewartorium.guild.members.fetch(stewartorium._typing.keys().next()).username;
+        });
+        console.log(typing.join(" "));
         const embeds = [];
         attachments.push(msg.attachments.map(attachment => {
             return "\n" + attachment.url;
@@ -133,18 +140,38 @@ client.on("message", (msg) => {
             return embed;
         }));
         var message = "**" + msg.author.tag + "**: " + msg.content + attachments;
-        msg.react('🥚');
+        msg.react('🥚').then(egg => {
+            egg.remove();
+        });
         stewartoriums.forEach(stewartorium => {
             if (stewartorium !== msg.channel) {
-                stewartorium.send(message, { "allowedMentions": { "users": [] }});
-                if (msg.embeds.length > 0) {
-                    stewartorium.send(msg.embeds);
+                if (stewartoriumBlacklist.includes(msg.author.id)) {
+                    stewartorium.send("**" + msg.author.tag + "**: [blocked message]");
+                } else {
+                    stewartorium.send(message, { "allowedMentions": { "users": [] } });
                 }
                 if ((msg.content.includes("<a:stewartpet:788420421850366002>") || msg.content.includes(":stewartpet:")) && !msg.author.bot) {
                     stewartorium.send("uwu <a:stewartpet:788420421850366002>");
                 }
             }
-            stewartorium.setTopic(stewartoriums.size + " stewartoriums entangled");
+            switch (typing.length) {
+                case 0: {
+                    stewartorium.setTopic(stewartoriums.size + " stewartoriums entangled");
+                    break;
+                }
+                case 1: {
+                    stewartorium.setTopic(typing[0] + " is typing...");
+                }
+                case 2: {
+                    stewartorium.setTopic(typing[0] + " and " + typing[1] + " are typing...");
+                }
+                case 3: {
+                    stewartorium.setTopic(typing[0] + ", " + typing[1] + ", and " + typing[2] + " are typing...");
+                }
+                default: {
+                    stewartorium.setTopic("Several people are typing...");
+                }
+            }
         });
     }
 });
