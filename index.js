@@ -1,13 +1,14 @@
 const fs = require('fs');
 const Discord = require("discord.js");
 const {
-    prefix, token, GMOD_DEATH_SOUND_PATH, BRUH_SOUND_PATH, stewartoriumBlacklist, stewartoriumNumber, name
+    prefix, token, GMOD_DEATH_SOUND_PATH, BRUH_SOUND_PATH, stewartoriumBlacklist, easterEggLocation, name, botID, configFilepath
 } = require('./config.json');
 
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-var stewartoriums = [client.channels.cache.find(channel => channel.type === "text" && channel.name === name + "orium" && channel.nsfw)];
+var stewartoriums = client.channels.cache.filter(channel => channel.type === "text" && channel.name === name + "orium" && channel.nsfw).array();
+var stewartoriumsTyping = [];
 
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
@@ -19,9 +20,37 @@ client.on("ready", () => {
     client.user.setActivity("st!help", {
         type: "LISTENING"
     });
+    client.guilds.cache.forEach(g => {
+        if (g.channels.cache.find(c => c.name === name + "orium" && c.nsfw && c.type === "text")) {
+            g.channels.cache.filter(c => c.name === name + "orium" && c.nsfw && c.type === "text").forEach(stewartorium => {
+                stewartorium.send(name + "'s back baybee");
+            });
+        }
+    });
+    if (easterEggLocation !== "0") {
+        setTimeout(function () {
+            client.guilds.cache.forEach(g => {
+                g.channels.cache.filter(c => c.name === name + "orium" && c.nsfw && c.type === "text").forEach(stewartorium => {
+                    stewartorium.send("easter egg is in this server: " + client.guilds.cache.find(gu => gu.channels.cache.find(chan => chan.id === easterEggLocation)).name);
+                });
+            });
+        }, 30000);
+        setTimeout(function () {
+            client.guilds.cache.forEach(g => {
+                g.channels.cache.filter(c => c.name === name + "orium" && c.nsfw).forEach(stewartorium => {
+                    stewartorium.send("nobody found the easter egg at " + client.channels.cache.get(easterEggLocation).name + " in " + client.channels.cache.get(easterEggLocation).guild.name);
+                });
+            });
+            setTimeout(function () {
+                const ogObject = JSON.parse(fs.readFileSync(configFilepath).toString());
+                ogObject.easterEggLocation = "0";
+                fs.writeFile(configFilepath, JSON.stringify(ogObject), function (err) {
+                    if (err) return console.log(err);
+                });
+            }, 2000);
+        }, 120000);
+    }
 });
-
-
 
 client.on("message", (msg) => {
     switch (msg.content) {
@@ -107,13 +136,47 @@ client.on("message", (msg) => {
     }
     if ((msg.content.includes("<a:stewartpet:788420421850366002>") || msg.content.includes(":stewartpet:")) && !msg.author.bot) {
         msg.channel.send("uwu <a:stewartpet:788420421850366002>");
+        msg.channel.stopTyping(true)
+    }
+    if (msg.channel.name === name + "orium" && msg.author.id !== botID && msg.channel.nsfw) {
+        stewartoriums = client.channels.cache.filter(channel => channel.type === "text" && channel.name === name + "orium" && channel.nsfw).array();
+        const attachments = [];
+        const embeds = [];
+        attachments.push(msg.attachments.map(attachment => {
+            return "\n" + attachment.url;
+        }));
+        var message = "**" + msg.author.tag + "**: " + msg.content + attachments;
+        msg.react('🥚').then(egg => {
+            egg.remove();
+        });
+        stewartoriums.forEach(stewartorium => {
+            if (stewartorium !== msg.channel) {
+                if (msg.author.id === "769251567575891999") {
+                    message = "**[📡GN]**: " + msg.content + attachments;
+                }
+                if (stewartoriumBlacklist.includes(msg.author.id)) {
+                    stewartorium.send("**" + msg.author.tag + "**: [blocked message]");
+                } else {
+                    stewartorium.send(message, { "allowedMentions": { "users": [] } });
+                    if (msg.embeds) {
+                        try {
+                            stewartorium.send(msg.embeds);
+                        } catch (err) {
+                        }
+                    }
+                }
+                if ((msg.content.includes("<a:stewartpet:788420421850366002>") || msg.content.includes(":stewartpet:")) && !msg.author.bot) {
+                    stewartorium.send("uwu <a:stewartpet:788420421850366002>");
+                }
+            }
+            stewartorium.setTopic(stewartoriums.length + " " + name + "oriums entangled");
+        });
     }
     if (msg.content.startsWith(prefix)) {
         const args = msg.content.slice(prefix.length).trim().split(" ");
         const commandName = args.shift().toLowerCase();
-        if (!client.commands.has(commandName)) return msg.channel.send("no comprendo señor");
+        if (!client.commands.has(commandName) || (client.commands.get(commandName).guild && client.commands.get(commandName).guild !== msg.guild.id)) return msg.channel.send("no comprendo señor");
         const command = client.commands.get(commandName);
-
         if (command.args && !args.length) {
             return msg.channel.send("no argumento señor");
         }
@@ -125,52 +188,16 @@ client.on("message", (msg) => {
             msg.channel.send("/shrug");
         }
     }
-    if (msg.channel.name === name + "orium" && msg.author.id !== "771831772157313024" && msg.channel.nsfw) {
-        const stewartoriums = client.channels.cache.filter(channel => channel.type === "text" && channel.name === name + "orium" && channel.nsfw);
-        const attachments = [];
-        const typing = stewartoriums.map(stewartorium => {
-            stewartorium.guild.members.fetch(stewartorium._typing.keys().next()).username;
-        });
-        console.log(typing.join(" "));
-        const embeds = [];
-        attachments.push(msg.attachments.map(attachment => {
-            return "\n" + attachment.url;
-        }));
-        embeds.push(msg.embeds.map(embed => {
-            return embed;
-        }));
-        var message = "**" + msg.author.tag + "**: " + msg.content + attachments;
-        msg.react('🥚').then(egg => {
-            egg.remove();
-        });
+});
+
+client.on("typingStart", (channel, user) => {
+    if (stewartoriums.includes(channel) && user.id !== botID) {
         stewartoriums.forEach(stewartorium => {
-            if (stewartorium !== msg.channel) {
-                if (stewartoriumBlacklist.includes(msg.author.id)) {
-                    stewartorium.send("**" + msg.author.tag + "**: [blocked message]");
-                } else {
-                    stewartorium.send(message, { "allowedMentions": { "users": [] } });
-                }
-                if ((msg.content.includes("<a:stewartpet:788420421850366002>") || msg.content.includes(":stewartpet:")) && !msg.author.bot) {
-                    stewartorium.send("uwu <a:stewartpet:788420421850366002>");
-                }
-            }
-            switch (typing.length) {
-                case 0: {
-                    stewartorium.setTopic(stewartoriums.size + " stewartoriums entangled");
-                    break;
-                }
-                case 1: {
-                    stewartorium.setTopic(typing[0] + " is typing...");
-                }
-                case 2: {
-                    stewartorium.setTopic(typing[0] + " and " + typing[1] + " are typing...");
-                }
-                case 3: {
-                    stewartorium.setTopic(typing[0] + ", " + typing[1] + ", and " + typing[2] + " are typing...");
-                }
-                default: {
-                    stewartorium.setTopic("Several people are typing...");
-                }
+            if (stewartorium !== channel) {
+                stewartorium.startTyping();
+                setTimeout(function () {
+                    stewartorium.stopTyping(true);
+                }, 8000);
             }
         });
     }
