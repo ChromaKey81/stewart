@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { prefix, handler } = require('./config.json');
+const { prefix, handler } = require('../config.json');
 
 module.exports = {
     name: 'report',

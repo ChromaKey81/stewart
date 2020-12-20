@@ -1,55 +1,51 @@
 const fs = require('fs');
 const Discord = require("discord.js");
+const Enmap = require('enmap');
 const {
-    prefix, token, GMOD_DEATH_SOUND_PATH, BRUH_SOUND_PATH, stewartoriumBlacklist, easterEggLocation, name, botID, configFilepath
+    prefix, token, GMOD_DEATH_SOUND_PATH, BRUH_SOUND_PATH, stewartoriumBlacklist, name, botID, configFilepath
 } = require('./config.json');
-
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-var stewartoriums = client.channels.cache.filter(channel => channel.type === "text" && channel.name === name + "orium" && channel.nsfw).array();
-var stewartoriumsTyping = [];
+var stewartoriums = [];
+
+client.settings = new Enmap({
+    name: "settings",
+    fetchAll: false,
+    autoFetch: true,
+    cloneLevel: 'deep'
+  });
+
+  const defaultSettings = {
+    assignableRoles: ["0"]
+  }
+
+  client.lastEgghead = "0";
 
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
     client.commands.set(command.name, command);
 }
 
+client.on("guildDelete", guild => {
+    client.settings.delete(guild.id);
+});
+
 client.on("ready", () => {
+    client.guilds.cache.forEach(guild => {
+        let chan = guild.channels.cache.find(channel => channel.type === "text" && channel.name === name + "orium" && channel.nsfw);
+        if (chan) {
+            stewartoriums.push(chan);
+        }
+    });
     console.log("Logged in as ${client.user.tag}!");
     client.user.setActivity("st!help", {
         type: "LISTENING"
     });
-    client.guilds.cache.forEach(g => {
-        if (g.channels.cache.find(c => c.name === name + "orium" && c.nsfw && c.type === "text")) {
-            g.channels.cache.filter(c => c.name === name + "orium" && c.nsfw && c.type === "text").forEach(stewartorium => {
-                stewartorium.send(name + "'s back baybee");
-            });
-        }
+    stewartoriums.forEach(stewartorium => {
+        stewartorium.send(name + "'s back baby");
     });
-    if (easterEggLocation !== "0") {
-        setTimeout(function () {
-            client.guilds.cache.forEach(g => {
-                g.channels.cache.filter(c => c.name === name + "orium" && c.nsfw && c.type === "text").forEach(stewartorium => {
-                    stewartorium.send("easter egg is in this server: " + client.guilds.cache.find(gu => gu.channels.cache.find(chan => chan.id === easterEggLocation)).name);
-                });
-            });
-        }, 30000);
-        setTimeout(function () {
-            client.guilds.cache.forEach(g => {
-                g.channels.cache.filter(c => c.name === name + "orium" && c.nsfw).forEach(stewartorium => {
-                    stewartorium.send("nobody found the easter egg at " + client.channels.cache.get(easterEggLocation).name + " in " + client.channels.cache.get(easterEggLocation).guild.name);
-                });
-            });
-            setTimeout(function () {
-                const ogObject = JSON.parse(fs.readFileSync(configFilepath).toString());
-                ogObject.easterEggLocation = "0";
-                fs.writeFile(configFilepath, JSON.stringify(ogObject), function (err) {
-                    if (err) return console.log(err);
-                });
-            }, 2000);
-        }, 120000);
-    }
+    client.easterEggLocation = "0";
 });
 
 client.on("message", (msg) => {
@@ -138,33 +134,43 @@ client.on("message", (msg) => {
         msg.channel.send("uwu <a:stewartpet:788420421850366002>");
         msg.channel.stopTyping(true)
     }
-    if (msg.channel.name === name + "orium" && msg.author.id !== botID && msg.channel.nsfw) {
-        stewartoriums = client.channels.cache.filter(channel => channel.type === "text" && channel.name === name + "orium" && channel.nsfw).array();
+    if (stewartoriums.includes(msg.channel) && msg.author.id !== botID) {
+        stewartoriums = [];
+        client.guilds.cache.forEach(guild => {
+            let chan = guild.channels.cache.find(channel => channel.type === "text" && channel.name === name + "orium" && channel.nsfw);
+            if (chan) {
+                stewartoriums.push(chan);
+            }
+        });
+        console.log(stewartoriums.length);
         const attachments = [];
         const embeds = [];
         attachments.push(msg.attachments.map(attachment => {
             return "\n" + attachment.url;
         }));
-        var message = "**" + msg.author.tag + "**: " + msg.content + attachments;
+        var message = msg.content + attachments;
         msg.react('🥚').then(egg => {
             egg.remove();
         });
         stewartoriums.forEach(stewartorium => {
+            let lastMessageID = stewartorium.lastMessage.author.id;
             if (stewartorium !== msg.channel) {
                 if (msg.author.id === "769251567575891999") {
                     message = "**[📡GN]**: " + msg.content + attachments;
-                }
-                if (stewartoriumBlacklist.includes(msg.author.id)) {
-                    stewartorium.send("**" + msg.author.tag + "**: [blocked message]");
+                } else if (stewartoriumBlacklist.includes(msg.author.id)) {
+                    message = "[blocked message]";
                 } else {
-                    stewartorium.send(message, { "allowedMentions": { "users": [] } });
-                    if (msg.embeds) {
-                        try {
-                            stewartorium.send(msg.embeds);
-                        } catch (err) {
+                    if (msg.author.id !== client.lastEgghead) {
+                        message = "‎__**" + msg.author.tag + "**__\n" + message;
+                        console.log(lastMessageID);
+                        if (lastMessageID === botID) {
+                            console.log(stewartorium.lastMessage.author.id);
+                            message = "‎\n" + message;
                         }
+                        client.lastEgghead = msg.author.id;
                     }
                 }
+                stewartorium.send(message, { "allowedMentions": { "users": [] } });
                 if ((msg.content.includes("<a:stewartpet:788420421850366002>") || msg.content.includes(":stewartpet:")) && !msg.author.bot) {
                     stewartorium.send("uwu <a:stewartpet:788420421850366002>");
                 }
@@ -172,7 +178,7 @@ client.on("message", (msg) => {
             stewartorium.setTopic(stewartoriums.length + " " + name + "oriums entangled");
         });
     }
-    if (msg.content.startsWith(prefix)) {
+    if (msg.content.startsWith(prefix) && !msg.author.bot) {
         const args = msg.content.slice(prefix.length).trim().split(" ");
         const commandName = args.shift().toLowerCase();
         if (!client.commands.has(commandName) || (client.commands.get(commandName).guild && client.commands.get(commandName).guild !== msg.guild.id)) return msg.channel.send("no comprendo señor");
@@ -180,9 +186,8 @@ client.on("message", (msg) => {
         if (command.args && !args.length) {
             return msg.channel.send("no argumento señor");
         }
-
         try {
-            command.execute(client, msg, args);
+            command.execute(client, msg, args, stewartoriums, defaultSettings);
         } catch (error) {
             console.error(error);
             msg.channel.send("/shrug");

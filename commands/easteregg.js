@@ -1,7 +1,7 @@
 const fs = require('fs');
 const Discord = require("discord.js");
 const path = require('path');
-const { prefix, name, easterEggLocation, configFilepath, botID } = require("../config.json");
+const { prefix, name, configFilepath, botID } = require("../config.json");
 
 module.exports = {
     name: 'easteregg',
@@ -12,49 +12,57 @@ module.exports = {
  * @param {Discord.Client} client STEWART
  * @param {Discord.Message} msg The name to say hi to
  * @param {String[]} args List of arguments 
+ * @param {Discord.TextChannel[]} stewartoriums List of stewartoriums
  */
-    execute(client, msg, args) {
-        console.log(easterEggLocation);
-        if (easterEggLocation === "0") {
+    execute(client, msg, args, stewartoriums) {
+        console.log(client.easterEggLocation);
+        if (client.easterEggLocation === "0") {
             if (msg.channel.name === name + "orium") {
-                const guild = client.guilds.cache.filter(g => g.channels.cache.find(c => c.type !== "voice" && c.name !== name + "orium") && g.members.cache.get(botID).permissions.has("MANAGE_CHANNELS")).array()[Math.floor(Math.random() * client.guilds.cache.size)];
-                const channel = guild.channels.cache.filter(c => c.type === "text" && c.name !== name + "orium" && c.permissionsFor(guild.roles.cache.find(r => r.name === '@everyone')).serialize().VIEW_CHANNEL).array()[Math.floor(Math.random() * guild.channels.cache.size)];
-                if (channel.topic) {
-                    channel.setTopic(channel.topic + " 🥚");
-                } else {
+                const guild = client.guilds.cache.filter(g => g.channels.cache.find(c => !stewartoriums.includes(c) && c.permissionsFor(g.roles.cache.find(r => r.name === '@everyone')).serialize().VIEW_CHANNEL && c.type === "text") && g.members.cache.get(botID).permissions.has("MANAGE_CHANNELS")).random();
+                const channel = guild.channels.cache.filter(c => !stewartoriums.includes(c) && c.permissionsFor(guild.roles.cache.find(r => r.name === '@everyone')).serialize().VIEW_CHANNEL && c.type === "text").random();
+                if (!channel.topic) {
                     channel.setTopic("🥚");
+                } else {
+                    channel.setTopic(channel.topic + " 🥚");
                 }
                 console.log(channel.name + " " + guild.name);
-                msg.channel.send("easter egg hidden");
+                stewartoriums.forEach(st => {
+                    st.send("easter egg hidden");
+                });
+                client.easterEggLocation = channel.id;
+                console.log(client.easterEggLocation);
                 setTimeout(function () {
-                    const ogObject = JSON.parse(fs.readFileSync(configFilepath).toString());
-                    ogObject.easterEggLocation = channel.id;
-                    fs.writeFile(configFilepath, JSON.stringify(ogObject), function (err) {
-                        if (err) return console.log(err);
-                    });
-                }, 2000);
+                    if (client.easterEggLocation !== "0") {
+                        stewartoriums.forEach(st => {
+                            st.send("the easter egg is in this server: " + guild.name);
+                        });
+                    }
+                }, 30000);
+                setTimeout(function () {
+                    if (client.easterEggLocation !== "0") {
+                        stewartoriums.forEach(st => {
+                                st.send("nobody found the easter egg at " + channel.name + " in " + guild.name);
+                                if (channel.topic) {
+                                    channel.setTopic(channel.topic.slice(0, -1));
+                                }
+                                client.easterEggLocation = "0";
+                        });
+                    }
+                }, 120000);
             } else {
                 msg.channel.send("you can only use that command in the " + name + "orium for all to see");
             }
         } else {
-            if (args[0] === easterEggLocation) {
+            if (args[0] === client.easterEggLocation) {
                 msg.react('✅');
-                const location = client.channels.cache.get(easterEggLocation);
+                const location = client.channels.cache.get(client.easterEggLocation);
                 if (location.topic) {
                     location.setTopic(location.topic.slice(0, -1));
                 }
-                client.guilds.cache.forEach(g => {
-                    g.channels.cache.filter(c => c.name === name + "orium" && c.nsfw).forEach(stewartorium => {
+                    stewartoriums.forEach(stewartorium => {
                         stewartorium.send(msg.author.username + " found the easter egg at " + location.name + " in " + location.guild.name);
                     });
-                });
-                setTimeout(function () {
-                    const ogObject = JSON.parse(fs.readFileSync(configFilepath).toString());
-                    ogObject.easterEggLocation = "0";
-                    fs.writeFile(configFilepath, JSON.stringify(ogObject), function (err) {
-                        if (err) return console.log(err);
-                    });
-                }, 2000);
+                client.easterEggLocation = "0";
             } else {
                 msg.react('❌');
             }
