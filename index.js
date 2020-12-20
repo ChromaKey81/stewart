@@ -7,6 +7,7 @@ const {
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+var lastMessageID = "0";
 var stewartoriums = [];
 
 client.settings = new Enmap({
@@ -20,7 +21,7 @@ client.settings = new Enmap({
     assignableRoles: ["0"]
   }
 
-  client.lastEgghead = "0";
+  var lastEgghead = "0";
 
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
@@ -153,21 +154,17 @@ client.on("message", (msg) => {
             egg.remove();
         });
         stewartoriums.forEach(stewartorium => {
-            let lastMessageID = stewartorium.lastMessage.author.id;
             if (stewartorium !== msg.channel) {
                 if (msg.author.id === "769251567575891999") {
                     message = "**[📡GN]**: " + msg.content + attachments;
                 } else if (stewartoriumBlacklist.includes(msg.author.id)) {
                     message = "[blocked message]";
                 } else {
-                    if (msg.author.id !== client.lastEgghead) {
-                        message = "‎__**" + msg.author.tag + "**__\n" + message;
-                        console.log(lastMessageID);
-                        if (lastMessageID === botID) {
-                            console.log(stewartorium.lastMessage.author.id);
+                    if (lastEgghead !== msg.author.id) {
+                        message = "__**" + msg.author.tag + "**__\n" + msg.content + attachments;
+                        if (stewartorium.lastMessage.author.id === botID) {
                             message = "‎\n" + message;
                         }
-                        client.lastEgghead = msg.author.id;
                     }
                 }
                 stewartorium.send(message, { "allowedMentions": { "users": [] } });
@@ -176,7 +173,9 @@ client.on("message", (msg) => {
                 }
             }
             stewartorium.setTopic(stewartoriums.length + " " + name + "oriums entangled");
+            message = msg.content + attachments;
         });
+        lastEgghead = msg.author.id;
     }
     if (msg.content.startsWith(prefix) && !msg.author.bot) {
         const args = msg.content.slice(prefix.length).trim().split(" ");
