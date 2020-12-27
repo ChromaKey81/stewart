@@ -6,6 +6,8 @@ module.exports = {
     description: 'make a role assignable through stewart',
     arguments: `<roleID>`,
     args: true,
+    permissions: ['MANAGE_ROLES'],
+    guild: true,
     /**
  * Say hi
  * @param {Discord.Client} client STEWART
@@ -15,8 +17,7 @@ module.exports = {
  */
     execute(client, msg, args, stewartoriums, defaultSettings) {
         client.settings.ensure(msg.guild.id, defaultSettings);
-        if (msg.member.permissions.has("ADMINISTRATOR")) {
-            if (msg.guild.roles.cache.find(r => r.id === args[0])) {
+            if (msg.guild.roles.cache.find(r => r.id === args[0]) && msg.guild.roles.cache.get(args[0]).comparePositionTo(msg.member.roles.highest) > 0) {
                 if (client.settings.get(msg.guild.id, "assignableRoles").includes(args[0])) {
                     client.settings.remove(msg.guild.id, args[0], "assignableRoles");
                     msg.channel.send("role is no longer assignable");
@@ -25,10 +26,7 @@ module.exports = {
                     msg.channel.send("role is now assignable");
                 }
             } else {
-                msg.channel.send("unknown role");
+                msg.channel.send("unknown role or the role is too high for you to manage");
             }
-        } else {
-            msg.channel.send("must be admin");
-        }
     }
 }

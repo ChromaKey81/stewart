@@ -6,6 +6,7 @@ module.exports = {
     description: 'Grab user ID from anon message (can only be run by handler)',
     arguments: '<userID>',
     args: true,
+    handlerOnly: true,
     /**
  * Say hi
  * @param {Discord.Client} client STEWART
@@ -13,7 +14,6 @@ module.exports = {
  * @param {String[]} args List of arguments 
  */
     execute(client, msg, args) {
-        if (msg.author.id === handler) {
             const channelID = args[0].slice(0, args[0].indexOf("-"));
             const messageID = args[0].slice(args[0].indexOf("-") + 1);
             client.channels.fetch(channelID).then(dmChannel => {
@@ -25,6 +25,5 @@ module.exports = {
             }, () => {
                 msg.channel.send("broken id :(");
             });
-        }
     }
 }

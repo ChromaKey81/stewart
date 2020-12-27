@@ -6,6 +6,7 @@ module.exports = {
     description: 'give yourself a role or remove it',
     arguments: `<roleName>`,
     args: true,
+    guild: true,
     /**
  * Say hi
  * @param {Discord.Client} client STEWART

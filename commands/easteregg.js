@@ -7,6 +7,7 @@ module.exports = {
     name: 'easteregg',
     description: 'hides an easter egg',
     args: false,
+    stewartorium: true,
     /**
  * Say hi
  * @param {Discord.Client} client STEWART
@@ -17,7 +18,6 @@ module.exports = {
     execute(client, msg, args, stewartoriums) {
         console.log(client.easterEggLocation);
         if (client.easterEggLocation === "0") {
-            if (msg.channel.name === name + "orium") {
                 const guild = client.guilds.cache.filter(g => g.channels.cache.find(c => !stewartoriums.includes(c) && c.permissionsFor(g.roles.cache.find(r => r.name === '@everyone')).serialize().VIEW_CHANNEL && c.type === "text") && g.members.cache.get(botID).permissions.has("MANAGE_CHANNELS")).random();
                 const channel = guild.channels.cache.filter(c => !stewartoriums.includes(c) && c.permissionsFor(guild.roles.cache.find(r => r.name === '@everyone')).serialize().VIEW_CHANNEL && c.type === "text").random();
                 if (!channel.topic) {
@@ -49,9 +49,6 @@ module.exports = {
                         });
                     }
                 }, 120000);
-            } else {
-                msg.channel.send("you can only use that command in the " + name + "orium for all to see");
-            }
         } else {
             if (args[0] === client.easterEggLocation) {
                 msg.react('✅');

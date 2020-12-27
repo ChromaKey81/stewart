@@ -6,6 +6,7 @@ module.exports = {
     description: 'Plays a banger',
     arguments: '<title> [<sendLyrics>]',
     args: true,
+    guild: true,
     /**
  * Say hi
  * @param {Discord.Client} client STEWART

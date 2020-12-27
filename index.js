@@ -18,7 +18,8 @@ client.settings = new Enmap({
   });
 
   const defaultSettings = {
-    assignableRoles: ["0"]
+    assignableRoles: ["0"],
+    gotcha: "0"
   }
 
   var lastEgghead = "0";
@@ -32,6 +33,18 @@ client.on("guildDelete", guild => {
     client.settings.delete(guild.id);
 });
 
+client.on("messageDelete", msg => {
+    client.settings.ensure(msg.guild.id, defaultSettings);
+    let gotcha = client.settings.get(msg.guild.id, "gotcha");
+    if (gotcha !== "0") {
+        let attachments = [];
+        msg.attachments.forEach(attachment => {
+            attachments.push("\n" + attachment.url);
+        });
+        msg.guild.channels.cache.get(gotcha).send("a message by <@" + msg.author.id + "> in <#" + msg.channel.id + "> was deleted: \"" + msg.content + "\"" + attachments, { allowedMentions: { users: [] }});
+    }
+});
+
 client.on("ready", () => {
     client.guilds.cache.forEach(guild => {
         let chan = guild.channels.cache.find(channel => channel.type === "text" && channel.name === name + "orium" && channel.nsfw);
@@ -39,12 +52,9 @@ client.on("ready", () => {
             stewartoriums.push(chan);
         }
     });
-    console.log("Logged in as ${client.user.tag}!");
+    console.log("Logged in as " + client.user.tag);
     client.user.setActivity("st!help", {
         type: "LISTENING"
-    });
-    stewartoriums.forEach(stewartorium => {
-        stewartorium.send(name + "'s back baby");
     });
     client.easterEggLocation = "0";
 });
@@ -61,10 +71,6 @@ client.on("message", (msg) => {
             if (!msg.author.bot) {
                 msg.channel.send("pee");
             }
-            break;
-        }
-        case "based": {
-            msg.channel.send("https://cdn.discordapp.com/attachments/618527046527614986/778733104420094012/Based.mp4");
             break;
         }
         case "da wobot!": {
@@ -115,9 +121,6 @@ client.on("message", (msg) => {
                 }).catch(console.error);
             }
         }
-        if ((msg.content.includes("unfunny") || msg.content.includes("not funny") || msg.content.includes("cringe") || msg.content.includes("repost")) && !msg.author.bot) {
-            msg.channel.send("https://cdn.discordapp.com/attachments/279294297398837249/776488535775117322/cringe_as_hell.mp4");
-        }
         if (msg.content.includes("monke") && msg.author.bot === false) {
             msg.channel.send("MONKE MONKE :monkey: :banana: OOO OOOO OOO AA AA");
         }
@@ -128,11 +131,11 @@ client.on("message", (msg) => {
     if (msg.content.includes("stickbug")) {
         msg.channel.send("https://cdn.discordapp.com/attachments/633059174539984901/784411180918898698/video0-1.mov");
     }
-    if (msg.content.includes(name) && !(msg.content.includes("<a:stewartpet:788420421850366002>" || msg.content.includes(":stewartpet:"))) && !msg.author.bot) {
+    if (msg.content.includes(name) && !(msg.content.includes(":stewartpet:")) && !msg.author.bot) {
         msg.channel.send(name.toUpperCase());
     }
-    if ((msg.content.includes("<a:stewartpet:788420421850366002>") || msg.content.includes(":stewartpet:")) && !msg.author.bot) {
-        msg.channel.send("uwu <a:stewartpet:788420421850366002>");
+    if (msg.content.includes(":stewartpet:") && !msg.author.bot) {
+        msg.channel.send("uwu <a:stewartpet:790990929837424711>");
         msg.channel.stopTyping(true)
     }
     if (stewartoriums.includes(msg.channel) && msg.author.id !== botID) {
@@ -162,7 +165,7 @@ client.on("message", (msg) => {
                 } else {
                     if (lastEgghead !== msg.author.id) {
                         message = "__**" + msg.author.tag + "**__\n" + msg.content + attachments;
-                        if (stewartorium.lastMessage.author.id === botID) {
+                        if (stewartorium.lastMessage && stewartorium.lastMessage.author.id === botID) {
                             message = "‎\n" + message;
                         }
                     }
@@ -180,16 +183,25 @@ client.on("message", (msg) => {
     if (msg.content.startsWith(prefix) && !msg.author.bot) {
         const args = msg.content.slice(prefix.length).trim().split(" ");
         const commandName = args.shift().toLowerCase();
-        if (!client.commands.has(commandName) || (client.commands.get(commandName).guild && client.commands.get(commandName).guild !== msg.guild.id)) return msg.channel.send("no comprendo señor");
+        if (!client.commands.has(commandName)) return msg.channel.send("no comprendo señor");
         const command = client.commands.get(commandName);
         if (command.args && !args.length) {
             return msg.channel.send("no argumento señor");
-        }
-        try {
-            command.execute(client, msg, args, stewartoriums, defaultSettings);
-        } catch (error) {
-            console.error(error);
-            msg.channel.send("/shrug");
+        } else if (command.guild && !msg.guild) {
+            return msg.channel.send("that command can only be used in a server");
+        } else if (command.stewartorium && !stewartoriums.includes(msg.channel)) {
+            return msg.channel.send("that command can only be used in the " + name + "orium");
+        } else if (msg.guild && command.permissions && !command.permissions.every(p => msg.member.permissions.has(p))) {
+            return msg.channel.send("that command requires the following permissions: " + command.permissions.join(", "));
+        } else if (command.handlerOnly && msg.author.id !== botID) {
+            return msg.channel.send("that command can only be run by my handler");
+        } else {
+            try {
+                command.execute(client, msg, args, stewartoriums, defaultSettings);
+            } catch (error) {
+                console.error(error);
+                msg.channel.send("/shrug");
+            }
         }
     }
 });
